@@ -1,13 +1,17 @@
 import "dotenv/config";
-import app from "./app.js";
+import app, { setupGraphQL } from "./app.js";
 import { connectDb } from "./config/db.js";
+import { apolloServer } from "./graphql/schema.js";
 
-const port = process.env.PORT || 4000;
+const PORT = process.env.PORT || 4000;
 
 const startServer = async () => {
   await connectDb();
-  app.listen(port, () => {
-    console.log("server started in port", port, "successfully");
+  await apolloServer.start();
+  setupGraphQL();
+  app.listen(PORT, () => {
+    console.log("server started in PORT", PORT, "successfully");
+    console.log(`GraphQL running at http://localhost:${PORT}/graphql`);
   });
 };
 

@@ -2,8 +2,8 @@ import mongoose, { Schema, type Types } from "mongoose";
 
 export type EventStatus = "DRAFT" | "PUBLISHED" | "CANCELLED";
 
-export interface IEvent extends Document {
-  organaizerId: Types.ObjectId;
+export interface IEvent {
+  organizerId: Types.ObjectId;
   title: string;
   slug: string;
   description: string;
@@ -27,7 +27,7 @@ export interface IEvent extends Document {
 
 const eventSchema = new Schema<IEvent>(
   {
-    organaizerId: {
+    organizerId: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,

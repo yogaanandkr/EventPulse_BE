@@ -6,5 +6,6 @@ export const connectDb = async (): Promise<void> => {
     console.log("Mongo db connected successfuly");
   } catch (error) {
     console.log("error connecting to mongo db", error);
+    throw error;
   }
 };

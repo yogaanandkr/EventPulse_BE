@@ -1,14 +1,33 @@
-import cors from 'cors'
-import express from 'express'
-const app = express()
+import { expressMiddleware } from "@as-integrations/express5";
+import cors from "cors";
+import express from "express";
+import { apolloServer } from "./graphql/schema.js";
+import { createContext } from "./graphql/context.js";
+import cookieParser from "cookie-parser";
+const app = express();
 
-app.use(cors())
-app.use(express.json())
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  }),
+);
+app.use(express.json());
+app.use(cookieParser());
+app.get("/", (_req, res) => {
+  res.json({
+    message: "event pulse api is running",
+  });
+});
+export const setupGraphQL = () => {
+  app.use(
+    "/graphql",
+    expressMiddleware(apolloServer, {
+      context: async ({ req, res }) => {
+        return createContext({ req, res });
+      },
+    }),
+  );
+};
 
-app.get('/', (_req, res) => {
-    res.json({
-        message: "event pulse api is running"
-    })
-})
-
-export default app
+export default app;
