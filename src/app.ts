@@ -9,7 +9,7 @@ interface dummy {
   name: string;
 }
 
-let dummyvar = {
+let dummyvar: dummy = {
   name: 500,
 };
 app.use(
