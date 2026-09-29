@@ -5,7 +5,13 @@ import { apolloServer } from "./graphql/schema.js";
 import { createContext } from "./graphql/context.js";
 import cookieParser from "cookie-parser";
 const app = express();
+interface dummy {
+  name: string;
+}
 
+let dummyvar = {
+  name: 500,
+};
 app.use(
   cors({
     origin: "http://localhost:5173",
