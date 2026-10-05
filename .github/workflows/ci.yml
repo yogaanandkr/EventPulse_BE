@@ -4,15 +4,19 @@
     EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
 
   run: |
+    echo "Creating SSH directory..."
     mkdir -p ~/.ssh
 
-    # Use echo -e to properly handle newlines in the SSH key
-    echo "$EC2_SSH_KEY" > ~/.ssh/eventpulse_key
+    echo "Creating private key..."
+    printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/eventpulse_key
 
+    echo "Setting key permissions..."
     chmod 600 ~/.ssh/eventpulse_key
 
-    # Add timeout and capture errors
-    ssh-keyscan -T 5 -H "$EC2_HOST" >> ~/.ssh/known_hosts 2>&1 || echo "Warning: ssh-keyscan failed"
+    echo "Scanning EC2 SSH host..."
+    ssh-keyscan -T 10 -H "$EC2_HOST" >> ~/.ssh/known_hosts
+
+    echo "SSH configuration complete."
 
 - name: Deploy EventPulse
   env:
