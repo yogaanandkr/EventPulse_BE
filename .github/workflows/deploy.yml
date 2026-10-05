@@ -1,49 +1,50 @@
-name: EventPulse Backend CD
+- name: Deploy to AWS EC2
+  env:
+    EC2_HOST: ${{ secrets.EC2_HOST }}
+    EC2_USER: ${{ secrets.EC2_USER }}
+    EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
 
-on:
-  workflow_run:
-    workflows: ["EventPulse Backend CI"]
-    types:
-      - completed
-    branches:
-      - main
+  run: |
+    echo "Preparing SSH..."
 
-permissions:
-  contents: read
+    mkdir -p ~/.ssh
 
-jobs:
-  deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/eventpulse_key
+    chmod 600 ~/.ssh/eventpulse_key
 
-    runs-on: ubuntu-latest
+    echo "Scanning EC2 host key..."
+    ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
 
-    steps:
-      - name: Deploy to AWS EC2
-        env:
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-          EC2_USER: ${{ secrets.EC2_USER }}
-          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+    echo "Testing SSH connection..."
+    ssh -i ~/.ssh/eventpulse_key \
+      -o BatchMode=yes \
+      "$EC2_USER@$EC2_HOST" "echo 'SSH connection successful'"
 
-        run: |
-          mkdir -p ~/.ssh
+    echo "Starting deployment..."
 
-          echo "$EC2_SSH_KEY" > ~/.ssh/eventpulse_key
-          chmod 600 ~/.ssh/eventpulse_key
+    ssh -i ~/.ssh/eventpulse_key "$EC2_USER@$EC2_HOST" << 'EOF'
+      set -e
 
-          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
+      echo "Connected to EC2"
+      whoami
 
-          ssh -i ~/.ssh/eventpulse_key "$EC2_USER@$EC2_HOST" << 'EOF'
-            set -e
+      echo "Opening EventPulse_BE..."
+      cd ~/EventPulse_BE
 
-            cd ~/EventPulse_BE
+      echo "Pulling latest code..."
+      git pull origin main
 
-            git pull origin main
+      echo "Installing dependencies..."
+      npm ci
 
-            npm ci
+      echo "Building backend..."
+      npm run build
 
-            npm run build
+      echo "Restarting EventPulse..."
+      pm2 restart eventpulse-api
 
-            pm2 restart eventpulse-api
+      echo "Saving PM2 configuration..."
+      pm2 save
 
-            pm2 save
-          EOF
+      echo "Deployment successful"
+    EOF
