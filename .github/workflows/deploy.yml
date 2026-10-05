@@ -1,0 +1,49 @@
+name: EventPulse Backend CD
+
+on:
+  workflow_run:
+    workflows: ["EventPulse Backend CI"]
+    types:
+      - completed
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to AWS EC2
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+
+        run: |
+          mkdir -p ~/.ssh
+
+          echo "$EC2_SSH_KEY" > ~/.ssh/eventpulse_key
+          chmod 600 ~/.ssh/eventpulse_key
+
+          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
+
+          ssh -i ~/.ssh/eventpulse_key "$EC2_USER@$EC2_HOST" << 'EOF'
+            set -e
+
+            cd ~/EventPulse_BE
+
+            git pull origin main
+
+            npm ci
+
+            npm run build
+
+            pm2 restart eventpulse-api
+
+            pm2 save
+          EOF
