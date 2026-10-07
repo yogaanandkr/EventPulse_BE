@@ -5,13 +5,18 @@ import { apolloServer } from "./graphql/schema.js";
 import { createContext } from "./graphql/context.js";
 import cookieParser from "cookie-parser";
 const app = express();
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.FRONTEND_URL,
+].filter(Boolean) as string[];
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: allowedOrigins,
     credentials: true,
   }),
 );
+
 app.use(express.json());
 app.use(cookieParser());
 app.get("/", (_req, res) => {
