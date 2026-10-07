@@ -27,6 +27,10 @@ app.get("/", (_req, res) => {
 export const setupGraphQL = () => {
   app.use(
     "/graphql",
+    cors({
+      origin: allowedOrigins,
+      credentials: true,
+    }),
     expressMiddleware(apolloServer, {
       context: async ({ req, res }) => {
         return createContext({ req, res });
