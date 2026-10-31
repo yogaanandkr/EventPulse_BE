@@ -3,6 +3,7 @@ import { requireAuth } from "../utils/requireAuth.js";
 import { User } from "../models/User.js";
 import { eventResolvers } from "../modules/event/event.resolver.js";
 import { ticketResolvers } from "../modules/ticket/ticket.resolver.js";
+import reservationResolvers from "../modules/reservation/reservation.resolver.js";
 
 export const resolvers = {
   Query: {
@@ -23,13 +24,15 @@ export const resolvers = {
     },
 
     ...eventResolvers.Query,
-    ...ticketResolvers.Query
+    ...ticketResolvers.Query,
+    ...reservationResolvers.Query,
   },
 
   Mutation: {
     ...authResolvers.Mutation,
     ...eventResolvers.Mutation,
-    ...ticketResolvers.Mutation
+    ...ticketResolvers.Mutation,
+    ...reservationResolvers.Mutation,
   },
 
   User: {

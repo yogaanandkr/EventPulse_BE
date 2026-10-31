@@ -47,14 +47,20 @@ export const createEvent = async (
   return event;
 };
 
-export const getEventById = async (eventId: string) => {
+export const getEventById = async (eventId: string, user?: any) => {
   const event = await Event.findById(eventId);
 
   if (!event) {
     throw new Error("Event not found");
   }
+  if (event.status === "PUBLISHED") {
+    return event;
+  }
+  const isOwner = event.organizerId.toString() === user?.userId;
 
-  return event;
+  const isAdmin = user?.role === "ADMIN";
+
+  return isOwner || isAdmin ? event : null;
 };
 
 export const getEvents = async () => {

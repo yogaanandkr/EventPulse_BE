@@ -1,10 +1,10 @@
-import mongoose, { Document, Schema, Types } from "mongoose";
+import mongoose, { Schema, Types } from "mongoose";
 
 export type BookingStatus = "PENDING" | "CONFIRMED" | "CANCELLED" | "EXPIRED";
 
-export type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED" | "REFUNDED";
+export type PaymentStatus = "UNPAID" | "PAID" | "FAILED" | "REFUNDED";
 
-interface IBookingItem {
+export interface IBookingItem {
   ticketTypeId: Types.ObjectId;
   ticketName: string;
   quantity: number;
@@ -12,26 +12,21 @@ interface IBookingItem {
   totalPrice: number;
 }
 
-export interface IBooking extends Document {
+export interface IBooking {
   bookingNumber: string;
-
   userId: Types.ObjectId;
   eventId: Types.ObjectId;
-
+  reservationId: Types.ObjectId;
   items: IBookingItem[];
-
   subtotal: number;
   discount: number;
   totalAmount: number;
   currency: string;
-
   status: BookingStatus;
   paymentStatus: PaymentStatus;
-
   bookedAt?: Date;
   confirmedAt?: Date;
   cancelledAt?: Date;
-
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,33 +38,27 @@ const bookingItemSchema = new Schema<IBookingItem>(
       ref: "TicketType",
       required: true,
     },
-
     ticketName: {
       type: String,
       required: true,
     },
-
     quantity: {
       type: Number,
       required: true,
       min: 1,
     },
-
     unitPrice: {
       type: Number,
       required: true,
       min: 0,
     },
-
     totalPrice: {
       type: Number,
       required: true,
       min: 0,
     },
   },
-  {
-    _id: false,
-  },
+  { _id: false },
 );
 
 const bookingSchema = new Schema<IBooking>(
@@ -80,82 +69,76 @@ const bookingSchema = new Schema<IBooking>(
       unique: true,
       index: true,
     },
-
     userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
-
     eventId: {
       type: Schema.Types.ObjectId,
       ref: "Event",
       required: true,
+      index: true,
     },
-
+    reservationId: {
+      type: Schema.Types.ObjectId,
+      ref: "Reservation",
+      required: true,
+      unique: true,
+    },
     items: {
       type: [bookingItemSchema],
       required: true,
       validate: {
         validator: (items: IBookingItem[]) => items.length > 0,
-        message: "Booking must contain at least one ticket",
+        message: "A booking must contain at least one ticket.",
       },
     },
-
     subtotal: {
       type: Number,
       required: true,
       min: 0,
     },
-
     discount: {
       type: Number,
       default: 0,
       min: 0,
     },
-
     totalAmount: {
       type: Number,
       required: true,
       min: 0,
     },
-
     currency: {
       type: String,
       default: "INR",
-      uppercase: true,
+      required: true,
     },
-
     status: {
       type: String,
       enum: ["PENDING", "CONFIRMED", "CANCELLED", "EXPIRED"],
       default: "PENDING",
+      required: true,
     },
-
     paymentStatus: {
       type: String,
-      enum: ["PENDING", "SUCCESS", "FAILED", "REFUNDED"],
-      default: "PENDING",
+      enum: ["UNPAID", "PAID", "FAILED", "REFUNDED"],
+      default: "UNPAID",
+      required: true,
     },
-
-    bookedAt: {
-      type: Date,
-    },
-
-    confirmedAt: {
-      type: Date,
-    },
-
-    cancelledAt: {
-      type: Date,
-    },
+    bookedAt: Date,
+    confirmedAt: Date,
+    cancelledAt: Date,
   },
-  {
-    timestamps: true,
-  },
+  { timestamps: true },
 );
 
 bookingSchema.index({ userId: 1, createdAt: -1 });
 bookingSchema.index({ eventId: 1, status: 1 });
 
-export const Booking = mongoose.model<IBooking>("Booking", bookingSchema);
+const Booking =
+  (mongoose.models.Booking as mongoose.Model<IBooking> | undefined) ??
+  mongoose.model<IBooking>("Booking", bookingSchema);
+
+export default Booking;

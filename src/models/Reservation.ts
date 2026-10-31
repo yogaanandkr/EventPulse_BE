@@ -6,21 +6,19 @@ export type ReservationStatus =
   | "EXPIRED"
   | "CANCELLED";
 
-interface IReservationItem {
+export interface IReservationItem {
   ticketTypeId: Types.ObjectId;
+  ticketName: string;
   quantity: number;
+  unitPrice: number;
 }
 
 export interface IReservation extends Document {
   userId: Types.ObjectId;
   eventId: Types.ObjectId;
-
   items: IReservationItem[];
-
   status: ReservationStatus;
-
   expiresAt: Date;
-
   createdAt: Date;
   updatedAt: Date;
 }
@@ -32,16 +30,23 @@ const reservationItemSchema = new Schema<IReservationItem>(
       ref: "TicketType",
       required: true,
     },
-
+    ticketName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     quantity: {
       type: Number,
       required: true,
       min: 1,
     },
+    unitPrice: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
   },
-  {
-    _id: false,
-  },
+  { _id: false },
 );
 
 const reservationSchema = new Schema<IReservation>(
@@ -50,44 +55,42 @@ const reservationSchema = new Schema<IReservation>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
-
     eventId: {
       type: Schema.Types.ObjectId,
       ref: "Event",
       required: true,
+      index: true,
     },
-
     items: {
       type: [reservationItemSchema],
       required: true,
       validate: {
         validator: (items: IReservationItem[]) => items.length > 0,
-        message: "Reservation must contain at least one ticket",
+        message: "A reservation must contain at least one ticket.",
       },
     },
-
     status: {
       type: String,
       enum: ["ACTIVE", "COMPLETED", "EXPIRED", "CANCELLED"],
       default: "ACTIVE",
+      required: true,
     },
-
     expiresAt: {
       type: Date,
       required: true,
       index: true,
     },
   },
-  {
-    timestamps: true,
-  },
+  { timestamps: true },
 );
 
 reservationSchema.index({ userId: 1, status: 1 });
-reservationSchema.index({ eventId: 1, status: 1 });
+reservationSchema.index({ status: 1, expiresAt: 1 });
 
-export const Reservation = mongoose.model<IReservation>(
-  "Reservation",
-  reservationSchema,
-);
+const Reservation =
+  (mongoose.models.Reservation as mongoose.Model<IReservation>|undefined) ||
+  mongoose.model<IReservation>("Reservation", reservationSchema);
+
+export default Reservation;

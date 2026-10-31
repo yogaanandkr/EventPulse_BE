@@ -3,7 +3,8 @@ import { typeDefs } from "./typeDefs.js";
 import { resolvers } from "./resolvers.js";
 import { eventTypeDefs } from "../modules/event/event.typeDefs.js";
 import { ticketTypeDefs } from "../modules/ticket/ticket.typeDefs.js";
+import reservationTypeDefs from "../modules/reservation/reservation.typeDefs.js";
 export const apolloServer = new ApolloServer({
-  typeDefs: [typeDefs, eventTypeDefs, ticketTypeDefs],
+  typeDefs: [typeDefs, eventTypeDefs, ticketTypeDefs, reservationTypeDefs],
   resolvers,
 });
