@@ -5,6 +5,7 @@ import {
   releaseReservation,
 } from "./reservation.service.js";
 import Booking from "../../models/Booking.js";
+import Reservation from "../../models/Reservation.js";
 
 interface AuthenticatedUser {
   userId: string;
@@ -93,7 +94,16 @@ const reservationResolvers = {
         .sort({ createdAt: -1 })
         .lean();
 
-      return bookings.map(booking => formatBooking(booking));
+      return Promise.all(
+        bookings.map(async booking => ({
+          ...formatBooking(booking),
+          reservation: await Reservation.findById(booking.reservationId)
+            .lean()
+            .then(reservation =>
+              reservation ? formatReservation(reservation) : null,
+            ),
+        })),
+      );
     },
   },
 

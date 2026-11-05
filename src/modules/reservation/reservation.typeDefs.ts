@@ -64,6 +64,7 @@ const reservationTypeDefs = `#graphql
     cancelledAt: String
     createdAt: String!
     updatedAt: String!
+    reservation: Reservation
   }
 
   input CreateReservationItemInput {

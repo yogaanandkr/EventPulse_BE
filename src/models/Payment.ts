@@ -2,7 +2,7 @@ import mongoose, { Document, Schema, Types } from "mongoose";
 
 export type PaymentStatus =
   | "PENDING"
-  | "SUCCESS"
+  | "PAID"
   | "FAILED"
   | "REFUND_PENDING"
   | "REFUNDED";
@@ -75,7 +75,7 @@ const paymentSchema = new Schema<IPayment>(
 
     status: {
       type: String,
-      enum: ["PENDING", "SUCCESS", "FAILED", "REFUND_PENDING", "REFUNDED"],
+      enum: ["PENDING", "PAID", "FAILED", "REFUND_PENDING", "REFUNDED"],
       default: "PENDING",
     },
 
@@ -104,3 +104,5 @@ paymentSchema.index({ bookingId: 1 });
 paymentSchema.index({ providerPaymentId: 1 });
 
 export const Payment = mongoose.model<IPayment>("Payment", paymentSchema);
+
+export default Payment;

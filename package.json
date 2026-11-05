@@ -30,7 +30,8 @@
     "express": "^5.2.1",
     "graphql": "^16.14.2",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.9.2"
+    "mongoose": "^9.9.2",
+    "razorpay": "^2.9.8"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",

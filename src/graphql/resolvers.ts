@@ -4,6 +4,7 @@ import { User } from "../models/User.js";
 import { eventResolvers } from "../modules/event/event.resolver.js";
 import { ticketResolvers } from "../modules/ticket/ticket.resolver.js";
 import reservationResolvers from "../modules/reservation/reservation.resolver.js";
+import paymentResolvers from "../modules/payment/payment.resolver.js";
 
 export const resolvers = {
   Query: {
@@ -33,6 +34,7 @@ export const resolvers = {
     ...eventResolvers.Mutation,
     ...ticketResolvers.Mutation,
     ...reservationResolvers.Mutation,
+    ...paymentResolvers.Mutation
   },
 
   User: {
